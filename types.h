@@ -16,7 +16,9 @@ typedef struct message {
 } message_t;
 
 
-int checkbyteorder();
+void htonmsg(message_t *message);
+
+#define ntohmsg(message) htonmsg(message); //same function
 
 
 #endif
