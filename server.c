@@ -36,4 +36,12 @@ int main() {
     printf("Accept error: %s\n", strerror(errno));
   }
 
+  message_t msg;
+  msg.sequence = 1;
+  msg.type = MESSAGE;
+  strcpy(msg.contents, "This is a test"); //buffer overflow fix later
+
+  htonmsg(&msg);
+  send(conn_fd, &msg, sizeof(msg), 0);
+
 }

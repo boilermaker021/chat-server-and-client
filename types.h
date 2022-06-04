@@ -17,8 +17,6 @@ typedef struct message {
 
 
 void htonmsg(message_t *message);
-
-#define ntohmsg(message) htonmsg(message); //same function
-
+void ntohmsg(message_t *message);
 
 #endif
