@@ -5,12 +5,25 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <pthread.h>
 
 
 #include "types.h"
 
 
 #define PORT 4130
+
+void *handle_connection(void *param) {
+  int sockfd = *((int *)param);
+  message_t msg = {.type = MESSAGE, .sequence = 0};
+  strcpy(&msg.contents, "This is a test message");
+
+  htonmsg(&msg);
+  send(sockfd, &msg, sizeof(message_t), 0);
+
+
+  close(sockfd);
+}
 
 int main() {
   struct sockaddr_in address;
@@ -30,18 +43,18 @@ int main() {
   if (status < 0) {
     printf("Listen error: %s\n", strerror(errno));
   }
+  pthread_t *thread_array = malloc(sizeof(pthread_t) * 8);
+  unsigned int thread_array_size = 8;
+  unsigned int thread_index = 0;
+  while (thread_index < thread_array_size) {
+    int conn_fd = accept(listen_fd, (struct sockaddr *)&address, &sizeof_address);
+    if (conn_fd < 0) {
+      printf("Accept error: %s\n", strerror(errno));
+    }
 
-  int conn_fd = accept(listen_fd, (struct sockaddr *)&address, &sizeof_address);
-  if (conn_fd < 0) {
-    printf("Accept error: %s\n", strerror(errno));
+    pthread_create(&thread_array[thread_index], NULL, &handle_connection, ((void *)&conn_fd));
+    thread_index++;
   }
 
-  message_t msg;
-  msg.sequence = 1;
-  msg.type = MESSAGE;
-  strcpy(msg.contents, "This is a test"); //buffer overflow fix later
-
-  htonmsg(&msg);
-  send(conn_fd, &msg, sizeof(msg), 0);
-
+  close(listen_fd);
 }
